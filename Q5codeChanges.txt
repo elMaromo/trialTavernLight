@@ -1,0 +1,59 @@
+
+spells.xml:
+we add the spell to this file in order to male it availible for the game, we give it the basic values that are common to all spells
+since this is for testing we make it cost almost no mana, be availible at level 1, without needing to be learn, and to all clases
+
+    <instant group="attack" spellid="181" name="stormtrial" words="storm trial" lvl="1" mana="5" cooldown="1" groupcooldown="1" needlearn="0" script="attack/stormtrial.lua">
+        <vocation name="None" />
+        <vocation name="Sorcerer" />
+        <vocation name="Druid" />
+        <vocation name="Paladin" />
+        <vocation name="Knight" />
+        <vocation name="Master Sorcerer" />
+        <vocation name="Elder Druid" />
+        <vocation name="Royal Paladin" />
+        <vocation name="Elite Knight" />
+    </instant>
+
+
+
+
+stormtrial.lua:
+main code for the spell, we configure all the effects and behaviour of the spell here
+the spell deals ice damage and invokes ice tornados around the player
+
+    local combat = Combat()
+    combat:setParameter(COMBAT_PARAM_TYPE, COMBAT_ICEDAMAGE)
+    combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_ICETORNADO)
+    combat:setArea(createCombatArea(AREA_STORMTRIAL))
+
+    function onGetFormulaValues(player, level, maglevel)
+        local min = (level / 5) + (maglevel * 4.5) + 20
+        local max = (level / 5) + (maglevel * 7.6) + 48
+        return -min, -max
+    end
+
+    combat:setCallback(CALLBACK_PARAM_LEVELMAGICVALUE, "onGetFormulaValues")
+
+    function onCastSpell(creature, variant)
+        return combat:execute(creature, variant)
+    end
+
+
+
+
+spells.lua:
+this spell uses its own custom area, so we need to add it to this file
+
+    AREA_STORMTRIAL = {
+        { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 1, 1, 1, 1, 1, 1, 1, 0 },
+        { 1, 1, 1, 1, 2, 1, 1, 1, 1 },
+        { 0, 1, 1, 1, 1, 1, 1, 1, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+    }
+
