@@ -1,0 +1,75 @@
+
+spells.xml:
+we add the spell to this file in order to male it availible for the game:
+
+<instant group="support" spellid="182" name="chargetrial" words="charge trial" lvl="1" mana="5" aggressive="0" selftarget="1" cooldown="1" groupcooldown="1" needlearn="0" script="support/chargetrial.lua">
+		<vocation name="Sorcerer" />
+		<vocation name="Druid" />
+		<vocation name="Paladin" />
+		<vocation name="Knight" />
+		<vocation name="Master Sorcerer" />
+		<vocation name="Elder Druid" />
+		<vocation name="Royal Paladin" />
+		<vocation name="Elite Knight" />
+	</instant>
+
+
+
+chargetrial.lua:
+main code for the spell.
+The teleportos the player until it finds an obstacle or reachs the maximun distance, leaving a creature effect behind:
+
+    --checks for the longest dash without an obstacle in the middle
+    function dashMaxDistance(player, playerPos, playerDirection, maxDashDistance)
+        for currDist = 1, maxDashDistance, 1 do
+            local dashPos = getPosDash(playerPos, playerDirection, currDist)
+            local succesDashing = dash(player, playerPos, dashPos)
+            if not succesDashing then
+                player:sendTextMessage(MESSAGE_STATUS_SMALL, "You can't dash any further.")
+                break
+            end
+        end
+    end
+
+    -- Gets position of selected tile to dash
+    function getPosDash(playerPos, playerDirection, dashDistance)
+        local dashPos = playerPos
+
+        if playerDirection == DIRECTION_NORTH then
+            dashPos.y = dashPos.y - dashDistance
+        elseif playerDirection == DIRECTION_SOUTH then
+            dashPos.y = dashPos.y + dashDistance
+        elseif playerDirection == DIRECTION_EAST then
+            dashPos.x = dashPos.x + dashDistance
+        elseif playerDirection == DIRECTION_WEST then
+            dashPos.x = dashPos.x - dashDistance
+        end
+
+        return dashPos
+    end
+
+    -- dash to selected position
+    function dash(player, playerPos, teleportPos)
+        local checkPathing = player:getPathTo(teleportPos, 0, 0, true, false)
+        if checkPathing == false then
+            return false
+        end
+
+        player:teleportTo(teleportPos)
+        playerPos:sendMagicEffect(CONST_ME_TELEPORT)
+
+        -- spawn a creature effect in the tile
+        teleportPos:sendMagicEffect(CONST_ME_MORTAREA)
+
+        return true
+    end
+
+    function onCastSpell(creature, var)
+        local playerPos = creature:getPosition()
+        local playerDirection = creature:getDirection()
+        local maxDashDistance = 4
+        dashMaxDistance(creature, playerPos, playerDirection, maxDashDistance)
+        return true
+    end
+
+
